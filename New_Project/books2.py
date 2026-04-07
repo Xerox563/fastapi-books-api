@@ -1,6 +1,7 @@
-from fastapi import FastAPI,Body,Path,Query
+from fastapi import FastAPI,Body,Path,Query,HTTPException
 from pydantic import BaseModel,Field
 from typing import Optional
+from starlette import status
 
 app = FastAPI() 
 
@@ -59,7 +60,7 @@ BOOKS = [
 ]
 
 
-@app.get("/books")
+@app.get("/books",status_code=status.HTTP_200_OK)
 async def read_all_books():
     return BOOKS
 
@@ -86,11 +87,14 @@ def find_book_id(book : Book):
     book.id = 1 if len(BOOKS) == 0 else BOOKS[-1].id + 1
     return book
 
-@app.get("/books/{book_id}")
+@app.get("/books/{book_id}",status_code=status.HTTP_200_OK)
 def read_single_book(book_id :int = Path(gt = 0 , lt = 6)): # here Path : allows to put validation over the dynamic path variable.[either path parameter is valid or not !!]
     for book in BOOKS:
         if book.id == book_id:
             return book
+        
 
 
-    return {"message":"Book With this id, Does not Exists !!"}    
+    raise HTTPException(status_code=404,detail="Item not Found")
+
+# HTTP Exception : It’s a way to send error responses with proper status codes
