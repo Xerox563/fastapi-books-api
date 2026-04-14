@@ -1,0 +1,5 @@
+venv/
+.env
+__pycache__/
+faq_bot/__pycache__
+faq_bot_v2/__pycache__
