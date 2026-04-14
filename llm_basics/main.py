@@ -10,8 +10,9 @@ SETUP:
 3. python main.py
 """
 
-from faq_bot.bot import FAQBot
-from faq_bot_v2.bot import solve
+# from faq_bot.bot import FAQBot
+# from faq_bot_v2.bot import solve
+from streaming.bot import solve
 
 
 def main():
@@ -22,8 +23,13 @@ def main():
     # # Test all 5 system prompts
     # bot.test_all_prompts()
     # print("\n✅ Demo complete!")
+    
+    # faq_bot_v2 
+    # solve()
 
+    # streaming
     solve()
+
 
 
 if __name__ == "__main__":
