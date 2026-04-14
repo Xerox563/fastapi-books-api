@@ -12,7 +12,8 @@ SETUP:
 
 # from faq_bot.bot import FAQBot
 # from faq_bot_v2.bot import solve
-from streaming.bot import solve
+# from streaming.bot import solve
+from cost_tracking.bot import solve_main
 
 
 def main():
@@ -28,7 +29,10 @@ def main():
     # solve()
 
     # streaming
-    solve()
+    # solve()
+
+    # cost Tracking
+    solve_main()
 
 
 
