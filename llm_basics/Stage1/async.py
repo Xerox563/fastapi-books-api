@@ -46,3 +46,52 @@ asyncio.run(main())
 | `asyncio.run()`    | Start async program    |
 
 '''
+
+# Task
+# Create 3 async functions:
+# 1. register_user(name: str, email: str) -> dict:
+# 2. send_verification_email(email: str) -> bool:
+# 3. check_email_exists(email: str) -> bool:
+
+# Create main() that:
+# - Registers users concurrently
+# - Prints results
+import asyncio
+
+async def check_email_exists(email: str) -> bool:
+    """Check if email already registered (simulated DB query)."""
+    await asyncio.sleep(0.5)  # Pretend DB lookup
+    return email == "existing@gmail.com"
+
+async def send_verification_email(email: str) -> bool:
+    """Send email verification (simulated API call)."""
+    await asyncio.sleep(0.3)  # Pretend sending email
+    print(f"Email sent to {email}")
+    return True
+
+async def register_user(name: str, email: str) -> dict:
+    """Register new user asynchronously."""
+    
+    # Check if email exists (concurrent)
+    email_exists = await check_email_exists(email)
+    
+    if email_exists:
+        return {"error": "Email already registered"}
+    
+    # Send verification email
+    await send_verification_email(email)
+    
+    return {"success": True, "name": name, "email": email}
+
+async def main():
+    # Register 3 users at once!
+    results = await asyncio.gather(
+        register_user("Alice", "alice@gmail.com"),
+        register_user("Bob", "bob@gmail.com"),
+        register_user("Charlie", "charlie@gmail.com")
+    )
+    
+    for result in results:
+        print(result)
+
+asyncio.run(main())
