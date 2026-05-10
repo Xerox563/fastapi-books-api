@@ -105,7 +105,96 @@ class SemanticSearchEngine:
         
         return dot_product / (magnitude1 * magnitude2)
     
+    def search(self,query,top_k=3):
+        """
+        WHY: Find resumes matching a job requirement
+        HOW: Embed query, compare with all resumes
+        RESULT: Top matching resumes ranked by similarity
+        """
+
+        # embed the query
+        response = self.client.embeddings.create(
+            input=query,
+            model=self.model
+        )
+        query_embedding = response.data[0].embedding
+
+        # calculate the similarity with all resumes
+        results = []
+        for resume in self.resumes:
+            resume_embedding = self.embeddings[resume["id"]]
+            similarity = self.cosine_similarity(
+                query_embedding,
+                resume_embedding
+            )
+            results.append({
+                "candidate": resume["candidate"],
+                "similarity": similarity,
+                "content": resume["content"][:100] + "..."
+            })
+
+            results.sort(key=lambda x: x["similarity"],reverse=True)
+            
+            return results[:top_k]
+
+    def search_by_keywords(self,keywords,top_k=3):
+        """
+            WHY: Search using keywords instead of full query
+            HOW: Join keywords into query, embed, search
+            RESULT: Find matching resumes
+        """  
+        query = f"Experince with {','.join(keywords)}" 
+        return self.search(query,top_k) 
+    
+    def search_by_role(self,role,top_k=3):
+        """
+        WHY: Find candidates for a specific role
+        HOW: Create role-specific query, search
+        RESULT: Best candidates for that role
+        """
+        query = f"Candidate suitable for {role} position"
+        return self.search(query, top_k)
+    
+    def compare_resume_to_job(self,candidate_id,job_description):
+        """
+            WHY: How well does candidate match job?
+            HOW: Calculate similarity between resume and job
+            RESULT: Match percentage
+        """
+        response = self.client.embeddings.create(
+            input = job_description,
+            model=self.model
+        )
+
+        job_emedding = response.data[0].embedding
+
+        # find candidate
+        candidate = next((r for r in self.resume if r["id"] == candidate_id),None)
+        if not candidate:
+            return None
+        
+        # calculate match
+        candidate_embedding = self.embeddings[candidate_id]
+        match_score = self.cosine_similarity(
+            job_emedding,
+            candidate_embedding
+        )
+        return {
+            "candidate": candidate["candidate"],
+            "match_score": match_score,
+            "match_percentage": f"{match_score * 100:.1f}%"
+        }
     
 if __name__ == "__main__":
     engine = SemanticSearchEngine()
     engine.embed_resumes()
+
+    # Try a search
+    query = "Looking for Python developer with cloud experience"
+    results = engine.search(query, top_k=2)
+
+    print("\nTop matches:")
+    for i, result in enumerate(results, 1):
+        print(f"\n{i}. {result['candidate']}")
+        print(f"   Match score: {result['similarity']:.1%}")
+        print(f"   Summary: {result['content']}")
